@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+
+
+
+
+    <!-- ====================================== pozycja ====================================== -->
+
+<div id="demo">
+      <ul class="section" v-for="(section, index) in sections" :key="index">
+          SECTION:{{section.id}}  
+          <li class="element" v-for="(element, idx) in section.elements" :key="idx">
+            <span>PICK UP YOUR ANIMAL {{element}}</span>
+            <my-select :el="element" :idx="index" @sel="handleSelect" @rem="removeElement"></my-select>
+          </li>
+        <button class="addEleme" @click='addElement(index)'>Dodaj element</button> 
+        <button class="rem sec" @click='removeSection(index)'>Usuń pozycję</button>
+      </ul>
+      <button class="addSect" @click='addSection'>Dodaj pozycję</button>
+      <p>Sections: {{ sections }}</p>
+      <p>Selected: {{ selected }}</p>
+    </div>
+
+   <script>
+
+
+//  ====================================== Pozycja ======================================  \\
+new Vue({
+  el: "#demo",
+  data() {
+    return {
+      sections: [],
+      selected: []
+    }
+  },
+  methods:{
+    //
+    addSection(){
+      this.sections.push({id: this.newId(), elements: [this.newId()]})
+    },
+    newId() {
+      return Math.floor(Date.now())
+    },
+    removeSection(index){
+      console.log('index przekazany do remove section: ', index);
+      this.sections.splice(index, 1) 
+    },
+    addElement(idx){
+      console.log('idx: ', idx);
+      const nr = this.sections[idx].elements.length
+      this.sections[idx].elements.push(this.newId())
+    },
+    removeElement(obj){
+      const elems = this.sections[obj.idx].elements
+      const element = elems.find(e => e === obj.el)
+      this.selected = this.selected.filter(f => f.id !== element)
+      this.sections[obj.idx].elements = elems.filter(e => e !== element)
+    },
+    handleSelect(sel) {
+      const found = this.selected.find(s => s.id === sel.id)
+      this.selected = this.selected.map(x => (x.id === sel.id) ? sel : x)
+      if (!found) this.selected.push(sel)
+    }
+  }
+})
+
+
+//  ====================================== Analityka ====================================== \\
+Vue.component('mySelect', {
+  template: `
+    <div>
+    <select v-model="selected" @change="selectAnimal"> 
+      <option disabled value="">Please select one</option>
+      <option v-for="(item, index) in zoo" :key="index" v-bind:value="item">
+        {{item.name}}
+      </option>          
+    </select>
+    <button class="rem el" @click='remove'>Usuń analitykę</button>
+    </div>
+  `,
+  props: ['idx', 'el'],
+  data() {
+    return {
+      zoo: [{name: "Crocodyle Sara"}, {name: "Elepfhant Mike"}, {name: "Lion Monika"}, {name: "Shark Robert"}, {name: "Zebra Antony"}],
+      selected: ''
+    }
+  },
+  methods: {
+    selectAnimal() {
+      const obj = {id: this.el, ...this.selected}
+      this.$emit('sel', obj)
+    },
+    remove() {
+      const obj = {idx: this.idx, el: this.el}
+      this.$emit('rem', obj)
+    }
+  }
+})
+
+   </script>   
+</body>
+</html>
